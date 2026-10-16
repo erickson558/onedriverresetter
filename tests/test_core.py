@@ -51,6 +51,19 @@ class ResetFlowTests(unittest.TestCase):
         self.assertIn("log_exe_missing", events)
 
 
+class SettingsTests(unittest.TestCase):
+    def test_invalid_settings_fall_back_to_defaults(self):
+        bad = '{"language": "zz", "auto_close": "yes", "close_seconds": 99999}'
+        with mock.patch("builtins.open", mock.mock_open(read_data=bad)):
+            self.assertEqual(app.load_settings(), app.DEFAULT_SETTINGS)
+
+    def test_valid_settings_are_loaded(self):
+        good = '{"language": "es", "auto_close": false, "close_seconds": 20}'
+        with mock.patch("builtins.open", mock.mock_open(read_data=good)):
+            cfg = app.load_settings()
+        self.assertEqual((cfg["language"], cfg["auto_close"], cfg["close_seconds"]), ("es", False, 20))
+
+
 class I18nTests(unittest.TestCase):
     def test_all_languages_have_all_keys(self):
         base = set(i18n.TRANSLATIONS["en"])

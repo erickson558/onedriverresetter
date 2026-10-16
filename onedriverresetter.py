@@ -178,25 +178,41 @@ def _config_path():
     return os.path.join(base, "OneDriveResetter", "config.json")
 
 
-def load_language():
-    """Lee el idioma guardado; si no hay o es inválido, detecta el del sistema."""
+DEFAULT_SETTINGS = {
+    "language": None,       # None = detectar el idioma del sistema
+    "auto_run": True,       # reiniciar OneDrive automáticamente al abrir la app
+    "auto_close": True,     # cerrar la app tras reiniciar OneDrive
+    "close_seconds": 10,    # segundos de cuenta regresiva antes de cerrar
+}
+MIN_CLOSE_SECONDS, MAX_CLOSE_SECONDS = 3, 300
+
+def load_settings():
+    """Lee config.json y devuelve los ajustes validados (por defecto si algo falla)."""
+    settings = dict(DEFAULT_SETTINGS)
     try:
         with open(_config_path(), encoding="utf-8") as fh:
-            lang = json.load(fh).get("language")
-        if lang in LANGUAGES:
-            return lang
+            data = json.load(fh)
+        if data.get("language") in LANGUAGES:
+            settings["language"] = data["language"]
+        if isinstance(data.get("auto_run"), bool):
+            settings["auto_run"] = data["auto_run"]
+        if isinstance(data.get("auto_close"), bool):
+            settings["auto_close"] = data["auto_close"]
+        secs = data.get("close_seconds")
+        if isinstance(secs, int) and MIN_CLOSE_SECONDS <= secs <= MAX_CLOSE_SECONDS:
+            settings["close_seconds"] = secs
     except (OSError, ValueError, AttributeError):
         pass
-    return detect_language()
+    return settings
 
 
-def save_language(lang):
-    """Guarda el idioma elegido. Los errores de disco se ignoran (no es crítico)."""
+def save_settings(settings):
+    """Guarda los ajustes. Los errores de disco se ignoran (no es crítico)."""
     try:
         path = _config_path()
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as fh:
-            json.dump({"language": lang}, fh)
+            json.dump(settings, fh)
     except OSError:
         pass
 
@@ -210,14 +226,20 @@ class App(tk.Tk):
 
     def __init__(self, auto_run=True):
         super().__init__()
-        self.lang = load_language()
+        self.settings = load_settings()
+        self.lang = self.settings["language"] or detect_language()
+        self.countdown = None         # segundos restantes para cerrar (None = sin cuenta)
+        self.countdown_job = None     # id del after() de la cuenta regresiva
+        self.var_autorun = tk.BooleanVar(value=self.settings["auto_run"])
+        self.var_autoclose = tk.BooleanVar(value=self.settings["auto_close"])
+        self.var_seconds = tk.IntVar(value=self.settings["close_seconds"])
         self.events = queue.Queue()   # el hilo de trabajo deja aquí sus mensajes
         self.log_entries = []         # (clave, datos) para re-traducir al cambiar idioma
         self.status_key = "status_idle"
         self.running = False
 
-        self.geometry("560x380")
-        self.minsize(460, 320)
+        self.geometry("620x420")
+        self.minsize(560, 360)
         icon = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "icon.ico")
         if os.path.isfile(icon):
             try:
@@ -228,8 +250,8 @@ class App(tk.Tk):
         self._build_widgets()
         self._apply_texts()
         self.after(100, self._poll_events)
-        if auto_run:
-            # Reinicio automático al abrir la app (requisito principal).
+        if auto_run and self.var_autorun.get():
+            # Reinicio automático al abrir la app (si la casilla está marcada y no se pasó --no-auto).
             self.after(300, self.start_reset)
 
     def _build_widgets(self):
@@ -249,8 +271,22 @@ class App(tk.Tk):
         self.lang_box.pack(side="right", padx=(0, 6))
         self.lang_box.bind("<<ComboboxSelected>>", self._on_language_change)
 
+        # Opciones: auto-inicio con Windows y cierre automático con cuenta regresiva.
+        opts = ttk.Frame(self, padding=(10, 0))
+        opts.pack(fill="x")
+        self.chk_autorun = ttk.Checkbutton(opts, variable=self.var_autorun, command=self._save)
+        self.chk_autorun.pack(side="left")
+        self.chk_autoclose = ttk.Checkbutton(opts, variable=self.var_autoclose, command=self._on_autoclose)
+        self.chk_autoclose.pack(side="left", padx=(16, 4))
+        self.spin_seconds = ttk.Spinbox(opts, from_=MIN_CLOSE_SECONDS, to=MAX_CLOSE_SECONDS, width=5,
+                                        textvariable=self.var_seconds, command=self._on_autoclose)
+        self.spin_seconds.pack(side="left")
+        self.spin_seconds.bind("<FocusOut>", lambda _e: self._on_autoclose())
+        self.seconds_label = ttk.Label(opts)
+        self.seconds_label.pack(side="left", padx=4)
+
         self.progress = ttk.Progressbar(self, mode="indeterminate")
-        self.progress.pack(fill="x", padx=10)
+        self.progress.pack(fill="x", padx=10, pady=(8, 0))
 
         self.log = tk.Text(self, height=10, state="disabled", wrap="word")
         self.log.pack(fill="both", expand=True, padx=10, pady=8)
@@ -268,7 +304,13 @@ class App(tk.Tk):
         self.btn_reset.config(text=t(self.lang, "btn_reset"))
         self.btn_beer.config(text=t(self.lang, "btn_beer"))
         self.lang_label.config(text=t(self.lang, "lang_label"))
-        self.status_label.config(text=t(self.lang, self.status_key))
+        self.chk_autorun.config(text=t(self.lang, "chk_autorun"))
+        self.chk_autoclose.config(text=t(self.lang, "chk_autoclose"))
+        self.seconds_label.config(text=t(self.lang, "seconds_label"))
+        if self.countdown is not None:
+            self.status_label.config(text=t(self.lang, "status_countdown", n=self.countdown))
+        else:
+            self.status_label.config(text=t(self.lang, self.status_key))
         self.version_label.config(text=f"{t(self.lang, 'version_label')} V{__version__}")
         self.log.config(state="normal")
         self.log.delete("1.0", "end")
@@ -281,13 +323,61 @@ class App(tk.Tk):
         """Cambia el idioma al elegir otro en el combo y lo guarda."""
         names = {name: code for code, name in LANGUAGES.items()}
         self.lang = names.get(self.lang_box.get(), self.lang)
-        save_language(self.lang)
+        self._save()
         self._apply_texts()
+
+    def _seconds(self):
+        """Segundos de cuenta regresiva válidos (el campo puede contener texto inválido)."""
+        try:
+            return max(MIN_CLOSE_SECONDS, min(MAX_CLOSE_SECONDS, int(self.var_seconds.get())))
+        except (tk.TclError, ValueError):
+            return self.settings["close_seconds"]
+
+    def _save(self):
+        """Persiste idioma, reinicio automático al abrir y opciones de cierre automático."""
+        self.settings.update(language=self.lang, auto_run=bool(self.var_autorun.get()), auto_close=bool(self.var_autoclose.get()),
+                             close_seconds=self._seconds())
+        self.var_seconds.set(self.settings["close_seconds"])
+        save_settings(self.settings)
+
+    def _on_autoclose(self):
+        """Guarda la opción; cualquier cambio cancela la cuenta regresiva en curso."""
+        self._save()
+        self._cancel_countdown()
+        # Si ya terminó con éxito y la casilla sigue activa, la cuenta se reinicia.
+        if self.var_autoclose.get() and not self.running and self.status_key == "status_ok":
+            self._start_countdown()
+
+    def _start_countdown(self):
+        """Inicia la cuenta regresiva para cerrar la app tras terminar el reinicio."""
+        self.countdown = self._seconds()
+        self._tick()
+
+    def _tick(self):
+        """Cada segundo muestra el tiempo restante; al llegar a 0 cierra la ventana."""
+        if self.countdown is None:
+            return
+        if self.countdown <= 0:
+            self.destroy()
+            return
+        self._apply_texts()
+        self.countdown -= 1
+        self.countdown_job = self.after(1000, self._tick)
+
+    def _cancel_countdown(self):
+        """Detiene la cuenta regresiva y restaura el texto de estado."""
+        if self.countdown_job is not None:
+            self.after_cancel(self.countdown_job)
+        self.countdown_job = None
+        if self.countdown is not None:
+            self.countdown = None
+            self._apply_texts()
 
     def start_reset(self):
         """Lanza el reinicio en un hilo aparte para no congelar la ventana."""
         if self.running:
             return
+        self._cancel_countdown()
         self.running = True
         self.status_key = "status_running"
         self.btn_reset.config(state="disabled")
@@ -322,6 +412,9 @@ class App(tk.Tk):
                     self.status_key = "status_ok" if a else "status_error"
                     self.log_entries.append(("log_done", {}))
                     self._apply_texts()
+                    # Cierre automático solo si el reinicio fue exitoso (si falló, queda abierta para ver el log).
+                    if a and self.var_autoclose.get():
+                        self._start_countdown()
         except queue.Empty:
             pass
         self.after(100, self._poll_events)

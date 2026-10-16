@@ -11,4 +11,6 @@
 - [x] T9 Workflow de release en GitHub Actions
 - [x] T10 README, LICENSE Apache-2.0, CHANGELOG, SECURITY
 - [x] T11 Agentes y skills de proyecto
-- [ ] T12 (futuro) Opción de iniciar con Windows / programar reinicio periódico
+- [x] T12 Casilla de reinicio automático al abrir (V1.1.0)
+- [x] T13 Cierre automático con cuenta regresiva (V1.1.0)
+- [ ] T14 (futuro) Programar reinicio periódico

@@ -43,6 +43,10 @@ TRANSLATIONS = {
         "log_starting": "Starting OneDrive: {path}",
         "log_started_ok": "OneDrive is running again.",
         "log_start_failed": "Failed to start OneDrive: {error}",
+        "chk_autorun": "Restart OneDrive on launch",
+        "chk_autoclose": "Auto-close after",
+        "seconds_label": "seconds",
+        "status_countdown": "Closing in {n} s...",
         "log_done": "Done.",
     },
     "es": {
@@ -67,6 +71,10 @@ TRANSLATIONS = {
         "log_starting": "Iniciando OneDrive: {path}",
         "log_started_ok": "OneDrive está en ejecución nuevamente.",
         "log_start_failed": "Error al iniciar OneDrive: {error}",
+        "chk_autorun": "Reiniciar OneDrive al abrir",
+        "chk_autoclose": "Cerrar automáticamente en",
+        "seconds_label": "segundos",
+        "status_countdown": "Cerrando en {n} s...",
         "log_done": "Listo.",
     },
     "pt": {
@@ -91,6 +99,10 @@ TRANSLATIONS = {
         "log_starting": "Iniciando o OneDrive: {path}",
         "log_started_ok": "O OneDrive está em execução novamente.",
         "log_start_failed": "Falha ao iniciar o OneDrive: {error}",
+        "chk_autorun": "Reiniciar o OneDrive ao abrir",
+        "chk_autoclose": "Fechar automaticamente em",
+        "seconds_label": "segundos",
+        "status_countdown": "Fechando em {n} s...",
         "log_done": "Concluído.",
     },
     "fr": {
@@ -115,6 +127,10 @@ TRANSLATIONS = {
         "log_starting": "Démarrage de OneDrive : {path}",
         "log_started_ok": "OneDrive est de nouveau en cours d'exécution.",
         "log_start_failed": "Échec du démarrage de OneDrive : {error}",
+        "chk_autorun": "Redémarrer OneDrive au lancement",
+        "chk_autoclose": "Fermer automatiquement dans",
+        "seconds_label": "secondes",
+        "status_countdown": "Fermeture dans {n} s...",
         "log_done": "Terminé.",
     },
 }
