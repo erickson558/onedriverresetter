@@ -2,6 +2,10 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/) · Versionado: [SemVer](https://semver.org/) (`Vx.x.x`).
 
+## V1.2.0 - 2026-10-16
+### Changed
+- `config.json` ahora se guarda junto al .exe (modo portable). Si no se puede escribir ahí, usa `%APPDATA%\OneDriveResetter`, que también se lee para migrar ajustes anteriores.
+
 ## V1.1.1 - 2026-10-16
 ### Changed
 - El cierre automático ahora viene desactivado por defecto (se activa con la casilla).

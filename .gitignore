@@ -8,6 +8,7 @@ dist/
 # El .exe se publica como asset del Release, no se versiona.
 *.exe
 # Secretos/tokens nunca al repo
+config.json
 .env
 *.token
 .claude/settings.local.json

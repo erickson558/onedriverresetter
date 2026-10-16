@@ -172,8 +172,21 @@ def reset_onedrive(emit):
 # 3. Persistencia del idioma
 # ---------------------------------------------------------------------------
 
+def _app_dir():
+    """Carpeta del .exe (empaquetado) o del script .py (desarrollo)."""
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+
 def _config_path():
-    """%APPDATA%\\OneDriveResetter\\config.json (o carpeta home si no hay APPDATA)."""
+    """config.json junto al .exe (modo portable)."""
+    return os.path.join(_app_dir(), "config.json")
+
+
+def _fallback_config_path():
+    """%APPDATA%\OneDriveResetter\config.json: respaldo si la carpeta del .exe no es escribible,
+    y origen de la migración de configuraciones de versiones anteriores (<= V1.1.1)."""
     base = os.environ.get("APPDATA") or os.path.expanduser("~")
     return os.path.join(base, "OneDriveResetter", "config.json")
 
@@ -190,8 +203,16 @@ def load_settings():
     """Lee config.json y devuelve los ajustes validados (por defecto si algo falla)."""
     settings = dict(DEFAULT_SETTINGS)
     try:
-        with open(_config_path(), encoding="utf-8") as fh:
-            data = json.load(fh)
+        data = None
+        for path in (_config_path(), _fallback_config_path()):
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    data = json.load(fh)
+                break
+            except OSError:
+                continue  # no existe/no legible: probar la siguiente ruta
+        if data is None:
+            return settings
         if data.get("language") in LANGUAGES:
             settings["language"] = data["language"]
         if isinstance(data.get("auto_run"), bool):
@@ -207,14 +228,16 @@ def load_settings():
 
 
 def save_settings(settings):
-    """Guarda los ajustes. Los errores de disco se ignoran (no es crítico)."""
-    try:
-        path = _config_path()
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as fh:
-            json.dump(settings, fh)
-    except OSError:
-        pass
+    """Guarda los ajustes junto al .exe; si no se puede escribir, usa %APPDATA%.
+    Los errores de disco se ignoran (no es crítico)."""
+    for path in (_config_path(), _fallback_config_path()):
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(settings, fh)
+            return
+        except OSError:
+            continue
 
 
 # ---------------------------------------------------------------------------

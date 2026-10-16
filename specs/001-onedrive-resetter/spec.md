@@ -20,7 +20,7 @@ OneDrive deja de responder con frecuencia. Reiniciarlo a mano (matar procesos y 
 - RF4: La GUI nunca se congela (trabajo en hilo + cola).
 - RF5: `--no-auto` desactiva el reinicio al abrir.
 - RF7: Ajustes (idioma, auto_close, close_seconds) validados al leer; valores inválidos vuelven a los de por defecto.
-- RF6: Idioma guardado en `%APPDATA%\OneDriveResetter\config.json`.
+- RF6: Ajustes guardados en `config.json` junto al .exe (portable, V1.2.0); respaldo y migración desde `%APPDATA%\OneDriveResetter\config.json` si la carpeta no es escribible.
 
 ## Requisitos no funcionales
 - Solo Windows. Sin dependencias en runtime. Ver `specs/constitution.md` (seguridad).
