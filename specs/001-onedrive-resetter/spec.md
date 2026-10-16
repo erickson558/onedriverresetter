@@ -11,7 +11,7 @@ OneDrive deja de responder con frecuencia. Reiniciarlo a mano (matar procesos y 
 - **US5**: Hay un botón "Cómprame una cerveza" que abre el enlace de PayPal.
 - **US6**: Veo la versión Vx.x.x en la ventana.
 - **US7** (V1.1.0): Casilla "Reiniciar OneDrive al abrir" (activa por defecto): si está desmarcada, la app solo abre la ventana y espera el botón. `--no-auto` la anula.
-- **US8** (V1.1.0): Casilla "Cerrar automáticamente en X segundos": tras un reinicio exitoso muestra cuenta regresiva y cierra la app; desmarcar o pulsar "Reiniciar" la cancela. Si el reinicio falla, la app NO se cierra. Por defecto activo, 10 s, rango 3-300.
+- **US8** (V1.1.0): Casilla "Cerrar automáticamente en X segundos": tras un reinicio exitoso muestra cuenta regresiva y cierra la app; desmarcar o pulsar "Reiniciar" la cancela. Si el reinicio falla, la app NO se cierra. Por defecto DESACTIVADO (V1.1.1), 10 s, rango 3-300.
 
 ## Requisitos funcionales
 - RF1: Procesos objetivo (nombre exacto): OneDrive.exe, OneDrive.Sync.Service.exe, OneDriveStandaloneUpdater.exe, FileCoAuth.exe, FileSyncHelper.exe.

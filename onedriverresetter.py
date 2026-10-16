@@ -181,7 +181,7 @@ def _config_path():
 DEFAULT_SETTINGS = {
     "language": None,       # None = detectar el idioma del sistema
     "auto_run": True,       # reiniciar OneDrive automáticamente al abrir la app
-    "auto_close": True,     # cerrar la app tras reiniciar OneDrive
+    "auto_close": False,    # cerrar la app tras reiniciar OneDrive (opcional, desactivado por defecto)
     "close_seconds": 10,    # segundos de cuenta regresiva antes de cerrar
 }
 MIN_CLOSE_SECONDS, MAX_CLOSE_SECONDS = 3, 300

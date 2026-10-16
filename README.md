@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![Platform](https://img.shields.io/badge/platform-Windows-0078d6) ![Python](https://img.shields.io/badge/python-3.10%2B-yellow)
 
-Versión actual: <!-- version -->V1.1.0<!-- /version -->
+Versión actual: <!-- version -->V1.1.1<!-- /version -->
 
 Aplicación de Windows que **busca todos los procesos de OneDrive, los termina y vuelve a iniciar OneDrive** cada vez que se abre. Pensada para cuando OneDrive deja de responder.
 

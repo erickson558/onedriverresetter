@@ -2,6 +2,10 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/) · Versionado: [SemVer](https://semver.org/) (`Vx.x.x`).
 
+## V1.1.1 - 2026-10-16
+### Changed
+- El cierre automático ahora viene desactivado por defecto (se activa con la casilla).
+
 ## V1.1.0 - 2026-10-16
 ### Added
 - Casilla "Reiniciar OneDrive al abrir": activa/desactiva la automatización al iniciar la app.
