@@ -1,0 +1,60 @@
+name: Build & Release
+
+# Con cada push a main: prueba, compila el .exe y publica un Release Vx.x.x.
+# Si el tag de la versión ya existe (no se subió la versión), no se publica nada.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write   # necesario para crear tag y release
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Read version
+        id: ver
+        shell: bash
+        run: echo "tag=V$(python -c 'from version import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release already exists
+        id: exists
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build exe
+        if: steps.exists.outputs.exists == 'false'
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Create tag and release
+        if: steps.exists.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.ver.outputs.tag }}" OneDriveResetter.exe \
+            --target "${{ github.sha }}" \
+            --title "OneDrive Resetter ${{ steps.ver.outputs.tag }}" \
+            --generate-notes

@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+build/
+dist/
+*.spec
+# El .exe se publica como asset del Release, no se versiona.
+*.exe
+# Secretos/tokens nunca al repo
+.env
+*.token
+.claude/settings.local.json
